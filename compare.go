@@ -61,13 +61,13 @@ func main() {
     }
 
     lines2, err := readLines(f_path2)
-    //if err != nil {
-    //  log.Fatalf("readLines in file 2: %s", err)
-    //}
+    if err != nil {
+      log.Fatalf("readLines in file 2: %s", err)
+    }
 
-    for i := range lines1 {
-      if !elemInArray(lines1[i], lines2) {
-	lines = append(lines, lines1[i])
+    for _, line := range lines1 {
+      if !elemInArray(line, lines2) {
+	lines = append(lines, line)
       }	    
     }
 
