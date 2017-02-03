@@ -7,46 +7,8 @@ import (
   "os"
 )
 
-func readLines(path string) ([]string, error) {
-  file, err := os.Open(path)
-  if err != nil {
-    return nil, err
-  }
-  defer file.Close()
-
-  var lines []string
-  scanner := bufio.NewScanner(file)
-  for scanner.Scan() {
-    lines = append(lines, scanner.Text())
-  }
-  return lines, scanner.Err()
-}
-
-func writeLines(lines []string, path string) error {
-  file, err := os.Create(path)
-  if err != nil {
-    return err
-  }
-  defer file.Close()
-
-  w := bufio.NewWriter(file)
-  for _, line := range lines {
-    fmt.Fprintln(w, line)
-  }
-  return w.Flush()
-}
-
-func elemInArray(a string, list []string) bool {
-  for _, b := range list {
-    if b == a {
-      return true
-    }
-  }
-  return false
-}
-
 func main() {
-  lines := []string{}
+
   args := os.Args[1:]
   if len(args) != 2 {
     fmt.Println("You should specify two arguments.")
@@ -55,25 +17,43 @@ func main() {
     f_path1 := args[0]
     f_path2 := args[1]
 
-    lines1, err := readLines(f_path1)
-    if err != nil {
-      log.Fatalf("readLines in file 1: %s", err)
-    }
-
-    lines2, err := readLines(f_path2)
+    file, err := os.Open(f_path2)
     if err != nil {
       log.Fatalf("readLines in file 2: %s", err)
     }
+    defer file.Close()
 
-    for _, line := range lines1 {
-      if !elemInArray(line, lines2) {
-	lines = append(lines, line)
-      }	    
+    set := make(map[string]bool)
+    scanner1 := bufio.NewScanner(file)
+    for scanner1.Scan() {
+      set[scanner1.Text()] = true
     }
 
-    fmt.Println("We're going to write", len(lines), "lines into result.txt")
-    if err := writeLines(lines, "result.txt"); err != nil {
+    rfile, err := os.Create("result.txt")
+    if err != nil {
       log.Fatalf("writeLines: %s", err)
     }
+    defer rfile.Close()
+
+    w := bufio.NewWriter(rfile)
+
+    ofile, err := os.Open(f_path1)
+    if err != nil {
+      log.Fatalf("readLines in file 1: %s", err)
+    }
+    defer ofile.Close()
+
+    i := 0
+    scanner := bufio.NewScanner(ofile)
+    for scanner.Scan() {
+      line := scanner.Text()		  
+      if !set[line] {
+	i += 1
+	fmt.Fprintln(w, line)
+      }
+    }
+	  
+    fmt.Println("We've finished writing", i, "lines into result.txt")
+    w.Flush()
   }
 }
